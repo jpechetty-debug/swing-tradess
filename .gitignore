@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+data/*.parquet
+reports/*.html
+graphify-out/
+.agents/
+*.log
+.DS_Store

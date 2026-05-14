@@ -1,0 +1,6 @@
+pandas
+yfinance
+pandas-ta
+pyarrow
+openpyxl
+streamlit
