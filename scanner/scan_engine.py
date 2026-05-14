@@ -5,6 +5,10 @@ from core.swings import detect_swings
 from core.trend import classify_trend
 from core.candles import detect_patterns
 from core.support_resistance import find_sr_zones
+from core.volume import analyze_volume
+from core.liquidity import check_liquidity
+from core.relative_strength import calculate_relative_strength
+from data.dq_gates import run_dq_checks
 from scoring.rr_engine import calculate_levels
 from scoring.scorecard import calculate_score
 
@@ -17,11 +21,20 @@ def analyze_stock(symbol: str):
         if df.empty or len(df) < 50:
             return None
         
+        # Phase 6: DQ Gates
+        passed, msg = run_dq_checks(df)
+        if not passed:
+            print(f"DQ Filter: {symbol} failed - {msg}")
+            return None
+        
         df = detect_swings(df)
         trend = classify_trend(df)
         patterns = detect_patterns(df)
         sr_data = find_sr_zones(df)
         levels = calculate_levels(df)
+        volume_data = analyze_volume(df)
+        liq_data = check_liquidity(df)
+        rs_value = calculate_relative_strength(df)
         
         if not levels:
             return None
@@ -33,9 +46,11 @@ def analyze_stock(symbol: str):
             "bullish_candle": patterns["hammer"] or patterns["engulfing"],
             "reaction_count": len(sr_data["support"]),
             "rr_ratio": levels["rr"],
+            "volume_confirmation": volume_data["is_high_volume"],
+            "rs_positive": rs_value > 0,
+            "is_liquid": liq_data["is_liquid"],
             "clear_path": True, # Placeholder
-            "breakout_structure": False,
-            "volume_confirmation": False
+            "breakout_structure": False
         }
         
         score = calculate_score(scan_data)
@@ -50,6 +65,9 @@ def analyze_stock(symbol: str):
             "sl": levels["sl"],
             "potential_pct": levels["potential_pct"],
             "rr": levels["rr"],
+            "volume_ratio": volume_data["volume_ratio"],
+            "rs_value": rs_value,
+            "is_liquid": liq_data["is_liquid"],
             "patterns": patterns,
             "sr": sr_data
         }

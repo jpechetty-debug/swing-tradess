@@ -8,7 +8,7 @@ def fetch_stock_data(symbol: str, period: str = SCAN_PERIOD) -> pd.DataFrame:
     Fetches historical daily data for a given NSE symbol.
     Appends .NS if not present.
     """
-    if not symbol.endswith(".NS"):
+    if not symbol.endswith(".NS") and not symbol.startswith("^"):
         yf_symbol = f"{symbol}.NS"
     else:
         yf_symbol = symbol
@@ -23,6 +23,9 @@ def fetch_stock_data(symbol: str, period: str = SCAN_PERIOD) -> pd.DataFrame:
         # Clean columns if multi-index (sometimes happens with yfinance)
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
+            
+        # Ensure unique columns (sometimes yfinance returns duplicates)
+        df = df.loc[:, ~df.columns.duplicated()]
             
         return df
     except Exception as e:

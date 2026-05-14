@@ -8,6 +8,7 @@ from config.symbols import get_universe
 from scanner.scan_engine import run_universe_scan
 from scanner.ranking import get_top_setups
 from reports.stock_card import generate_html_report
+from data.storage import save_scan_results
 
 def main():
     # 1. Get Universe
@@ -25,6 +26,10 @@ def main():
     
     # 4. Generate Visual Report
     generate_html_report(top_5)
+    
+    # 5. Save to Audit Trail
+    save_scan_results(results)
+    
     print("\nView the visual report at: reports/top_5_report.html")
 
 if __name__ == "__main__":

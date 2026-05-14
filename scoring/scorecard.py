@@ -34,14 +34,23 @@ def calculate_score(data: dict) -> int:
     if data.get('breakout_structure'):
         score += 1
         
-    # 8. Volume Confirmation (Placeholder)
+    # 8. Volume Confirmation
     if data.get('volume_confirmation'):
         score += 1
+        
+    # 9. Relative Strength Positive
+    if data.get('rs_positive'):
+        score += 1
+        
+    # 10. Liquidity Pass
+    if not data.get('is_liquid'):
+        # Penalize illiquid stocks
+        score -= 2
         
     return score
 
 def get_setup_rating(score: int) -> str:
-    if score >= 7: return "STRONG BULLISH"
-    if score >= 5: return "WATCH"
-    if score >= 3: return "NEUTRAL"
+    if score >= 8: return "STRONG BULLISH"
+    if score >= 6: return "WATCH"
+    if score >= 4: return "NEUTRAL"
     return "SKIP"

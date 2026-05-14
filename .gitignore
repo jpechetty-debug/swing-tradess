@@ -8,5 +8,6 @@ data/*.parquet
 reports/*.html
 graphify-out/
 .agents/
+.agent/
 *.log
 .DS_Store
