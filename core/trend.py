@@ -1,32 +1,73 @@
-import pandas as pd
-from core.swings import get_last_swings
+"""
+Trend Classification
+Uses swing points to determine market structure state.
+"""
 
-def classify_trend(df: pd.DataFrame) -> str:
+from dataclasses import dataclass, field
+from typing import Optional
+import pandas as pd
+from core.swings import get_last_swings, SwingPoint
+from config.settings import TREND_LOOKBACK
+
+
+@dataclass
+class TrendSnapshot:
+    state: str                       # UPTREND / DOWNTREND / SIDEWAYS / REVERSAL_ATTEMPT
+    last_swing_high: Optional[float] = None
+    last_swing_low:  Optional[float] = None
+    swing_highs: list[float] = field(default_factory=list)
+    swing_lows:  list[float] = field(default_factory=list)
+    description: str = ""
+
+
+def classify_trend(df: pd.DataFrame, lookback: int = TREND_LOOKBACK) -> TrendSnapshot:
     """
-    Classifies trend based on last 4 swing points.
-    Uptrend: Higher High and Higher Low
-    Downtrend: Lower High and Lower Low
-    Sideways: Mixed signals
+    Uses the last N swing points to classify trend state.
     """
-    last_swings = get_last_swings(df, count=4)
-    if len(last_swings) < 4:
-        return "INSUFFICIENT DATA"
+    swings = get_last_swings(df, count=lookback * 2)
     
-    highs = last_swings[last_swings['Type'] == 'High']['Price'].tolist()
-    lows = last_swings[last_swings['Type'] == 'Low']['Price'].tolist()
-    
-    if len(highs) < 2 or len(lows) < 2:
-        return "MIXED"
-    
-    # Uptrend: Current High > Prev High AND Current Low > Prev Low
-    is_uptrend = highs[-1] > highs[-2] and lows[-1] > lows[-2]
-    
-    # Downtrend: Current High < Prev High AND Current Low < Prev Low
-    is_downtrend = highs[-1] < highs[-2] and lows[-1] < lows[-2]
-    
-    if is_uptrend:
-        return "UPTREND"
-    elif is_downtrend:
-        return "DOWNTREND"
+    swing_highs = [s for s in swings if s.kind == "high"]
+    swing_lows  = [s for s in swings if s.kind == "low"]
+
+    if len(swing_highs) < 2 or len(swing_lows) < 2:
+        return TrendSnapshot(
+            state="INSUFFICIENT_DATA",
+            description="Not enough swing points to classify trend."
+        )
+
+    # Most recent N points
+    recent_highs = [sp.price for sp in swing_highs[-lookback:]]
+    recent_lows  = [sp.price for sp in swing_lows[-lookback:]]
+
+    def _is_ascending(seq): return all(x < y for x, y in zip(seq, seq[1:]))
+    def _is_descending(seq): return all(x > y for x, y in zip(seq, seq[1:]))
+
+    hh = _is_ascending(recent_highs)   # Higher Highs
+    hl = _is_ascending(recent_lows)    # Higher Lows
+    ll = _is_descending(recent_lows)   # Lower Lows
+    lh = _is_descending(recent_highs)  # Lower Highs
+
+    if hh and hl:
+        state = "UPTREND"
+        desc  = "HH + HL confirmed – bullish structure intact."
+    elif lh and ll:
+        state = "DOWNTREND"
+        desc  = "LH + LL confirmed – bearish structure intact."
+    elif hh and ll:
+        state = "REVERSAL_ATTEMPT"
+        desc  = "HH with LL – potential reversal, wait for confirmation."
+    elif lh and hl:
+        state = "REVERSAL_ATTEMPT"
+        desc  = "LH with HL – compression, wait for breakout direction."
     else:
-        return "SIDEWAYS"
+        state = "SIDEWAYS"
+        desc  = "Mixed swing points – no clear trend bias."
+
+    return TrendSnapshot(
+        state        = state,
+        last_swing_high = recent_highs[-1] if recent_highs else None,
+        last_swing_low  = recent_lows[-1]  if recent_lows  else None,
+        swing_highs  = recent_highs,
+        swing_lows   = recent_lows,
+        description  = desc,
+    )

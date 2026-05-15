@@ -1,50 +1,68 @@
+"""
+Swing High/Low Detection
+Identifies swing points based on body-close local extrema.
+"""
+
+from dataclasses import dataclass
+from typing import Optional
 import pandas as pd
 import numpy as np
 
-def detect_swings(df: pd.DataFrame, lookback: int = 2) -> pd.DataFrame:
+from config.settings import SWING_WINDOW
+
+
+@dataclass
+class SwingPoint:
+    index: int          # DataFrame integer position
+    date: object        # pandas Timestamp
+    price: float        # Close price at swing point
+    kind: str           # 'high' or 'low'
+
+
+def detect_swings(df: pd.DataFrame, window: int = SWING_WINDOW) -> pd.DataFrame:
     """
-    Detects swing highs and lows.
-    A swing high is a peak higher than 'lookback' neighbors on both sides.
-    A swing low is a trough lower than 'lookback' neighbors on both sides.
+    Identifies swing highs and lows using BODY closes (not wicks).
+    Adds Swing_High and Swing_Low columns to the DataFrame.
     """
     df = df.copy()
-    df['Swing_High'] = np.nan
-    df['Swing_Low'] = np.nan
+    df["Swing_High"] = np.nan
+    df["Swing_Low"]  = np.nan
     
-    for i in range(lookback, len(df) - lookback):
-        current_high = df['High'].iloc[i]
-        current_low = df['Low'].iloc[i]
-        
-        # Check Highs
-        is_high = True
-        for j in range(1, lookback + 1):
-            if df['High'].iloc[i-j] >= current_high or df['High'].iloc[i+j] > current_high:
-                is_high = False
-                break
-        if is_high:
-            df.loc[df.index[i], 'Swing_High'] = current_high
-            
-        # Check Lows
-        is_low = True
-        for j in range(1, lookback + 1):
-            if df['Low'].iloc[i-j] <= current_low or df['Low'].iloc[i+j] < current_low:
-                is_low = False
-                break
-        if is_low:
-            df.loc[df.index[i], 'Swing_Low'] = current_low
-            
+    closes = df["Close"].values
+    dates  = df.index
+
+    for i in range(window, len(closes) - window):
+        # ── Swing High: candle body close is local maximum ───────────────────
+        window_closes = closes[i - window: i + window + 1]
+        if closes[i] == window_closes.max():
+            df.loc[dates[i], "Swing_High"] = float(closes[i])
+
+        # ── Swing Low: candle body close is local minimum ────────────────────
+        if closes[i] == window_closes.min():
+            df.loc[dates[i], "Swing_Low"] = float(closes[i])
+
     return df
+
 
 def get_last_swings(df: pd.DataFrame, count: int = 4):
     """
-    Returns the last 'count' confirmed swing points.
-    Returns a list of tuples: (index, price, type['High'/'Low'])
+    Returns the last 'count' confirmed swing points as a list of SwingPoint objects.
     """
-    highs = df[df['Swing_High'].notna()][['Swing_High']].rename(columns={'Swing_High': 'Price'})
-    highs['Type'] = 'High'
+    highs = df[df["Swing_High"].notna()]
+    lows  = df[df["Swing_Low"].notna()]
     
-    lows = df[df['Swing_Low'].notna()][['Swing_Low']].rename(columns={'Swing_Low': 'Price'})
-    lows['Type'] = 'Low'
+    swing_points = []
     
-    combined = pd.concat([highs, lows]).sort_index()
-    return combined.tail(count)
+    # Extract highs
+    for idx, row in highs.iterrows():
+        pos = df.index.get_loc(idx)
+        swing_points.append(SwingPoint(pos, idx, float(row["Swing_High"]), "high"))
+        
+    # Extract lows
+    for idx, row in lows.iterrows():
+        pos = df.index.get_loc(idx)
+        swing_points.append(SwingPoint(pos, idx, float(row["Swing_Low"]), "low"))
+        
+    # Sort by index and return last count
+    swing_points.sort(key=lambda x: x.index)
+    return swing_points[-count:]

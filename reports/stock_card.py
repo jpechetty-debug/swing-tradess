@@ -57,6 +57,7 @@ def generate_html_report(top_setups: list):
                 <span class="tag" style="background: #fff7e6; color: #fa8c16;">SWING</span>
                 <span class="tag" style="background: #f6ffed; color: #52c41a;">Risk: LOW</span>
             </div>
+            <div style="font-size: 10px; color: #8c8c8c; margin-top: 5px;">Data as of: {stock.get('timestamp', 'Live')}</div>
             <div class="grid">
                 <div class="metric">
                     <div class="label">Entry</div>
