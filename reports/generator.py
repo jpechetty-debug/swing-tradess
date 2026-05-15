@@ -146,10 +146,11 @@ def _write_scorecard_detail(wb, results: list[ScorecardResult]):
 
     row = 2
     for r in results[:50]:   # top 50 by score
-        for item in r.items:
-            ws.cell(row, 1, r.symbol).font  = BODY_FONT
-            ws.cell(row, 2, r.cmp).font     = BODY_FONT
-            ws.cell(row, 3, r.score).font   = BODY_FONT
+        items = r.get("score_items", [])
+        for item in items:
+            ws.cell(row, 1, r['symbol']).font  = BODY_FONT
+            ws.cell(row, 2, r['ltp']).font     = BODY_FONT
+            ws.cell(row, 3, r['score']).font   = BODY_FONT
             ws.cell(row, 4, item.criterion).font = BODY_FONT
             status_cell = ws.cell(row, 5, item.status)
             status_cell.fill = _fill(COLORS.get(item.status, "FFFFFF"))
@@ -250,6 +251,10 @@ def generate_report(
     # ── Sheet 4: Downtrends (avoid) ───────────────────────────────────────────
     down = df[df["Trend"] == "DOWNTREND"].copy()
     _write_sheet(wb, "DOWNTRENDS_AVOID", down)
+
+    # ── Sheet 5: Full scorecard detail ───────────────────────────────────────
+    sorted_results = sorted(results, key=lambda r: r['score'], reverse=True)
+    _write_scorecard_detail(wb, sorted_results)
 
     # ── Sheet 6: Metadata ─────────────────────────────────────────────────────
     _write_metadata(wb, len(results), elapsed)

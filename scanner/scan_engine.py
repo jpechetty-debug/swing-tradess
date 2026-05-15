@@ -109,7 +109,9 @@ def analyze_stock(symbol: str, capital: float = 500000):
             "gate_rr": score_result.gate_rr,
             "support_zone": score_result.support_zone,
             "avg_vol_20": score_result.avg_vol_20,
-            "atr14": score_result.atr14
+            "atr14": score_result.atr14,
+            "trend": trend.state,
+            "potential_pct": ((risk.target1 / score_result.cmp) - 1) * 100 if risk else 0.0
         }
 
     except Exception as e:

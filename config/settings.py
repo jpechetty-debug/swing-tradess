@@ -43,18 +43,6 @@ MIN_AVG_VOL     = 300_000        # minimum 20-day avg volume
 MIN_PRICE       = 20.0           # paise filter – avoid penny stocks
 MIN_CANDLES     = 60             # skip if fewer history candles available
 
-import os
-
-# Scan Parameters
-SCAN_PERIOD = "1y"
-LOOKBACK_PERIOD = 2
-ZIGZAG_DEPTH = 20
-ZIGZAG_DEVIATION = 0.05
-
-# Risk Parameters
-CAPITAL_RISK_PERCENT = 0.01
-MIN_RR_RATIO = 1.5
-
 # Directories
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")

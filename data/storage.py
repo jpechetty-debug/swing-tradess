@@ -2,6 +2,7 @@ import sqlite3
 import json
 import datetime
 import os
+import pandas as pd
 from config.settings import BASE_DIR
 
 DB_PATH = os.path.join(BASE_DIR, "data", "scans.db")

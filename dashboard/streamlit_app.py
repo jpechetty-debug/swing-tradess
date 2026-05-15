@@ -74,7 +74,7 @@ if 'top_setups' in st.session_state and len(st.session_state['top_setups']) > 0:
             st.markdown(f"""
                 <div class="card">
                     <div class="symbol-title">{setup['symbol']}</div>
-                    <div style="font-size: 12px; color: #8c8c8c;">Score: {setup['score']}/10</div>
+                    <div style="font-size: 12px; color: #8c8c8c;">Score: {setup['score']}/8</div>
                     <hr>
                     <div class="metric-value">₹{float(setup['entry']):,.2f}</div>
                     <div style="font-size: 12px; color: #8c8c8c;">Target: ₹{float(setup['target']):,.2f}</div>
