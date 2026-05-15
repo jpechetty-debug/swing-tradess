@@ -1,4 +1,6 @@
 import datetime
+import os
+from config.settings import REPORTS_DIR
 
 def generate_html_report(top_setups: list):
     """
@@ -85,6 +87,7 @@ def generate_html_report(top_setups: list):
         
     html += "</body></html>"
     
-    with open("reports/top_5_report.html", "w", encoding="utf-8") as f:
+    report_path = os.path.join(REPORTS_DIR, "top_5_report.html")
+    with open(report_path, "w", encoding="utf-8") as f:
         f.write(html)
-    print("Report generated: reports/top_5_report.html")
+    print(f"Report generated: {report_path}")

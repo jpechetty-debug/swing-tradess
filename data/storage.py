@@ -44,7 +44,7 @@ def save_scan_results(results: list):
             "potential_pct": float(r.get('potential_pct', 0)),
             "volume_ratio": float(r.get('volume_ratio', 0)),
             "rs_value": float(r.get('rs_value', 0)),
-            "patterns": {k: bool(v) for k, v in r.get('patterns', {}).items()}
+            "pattern": r.get('pattern', 'UNKNOWN')
         })
         
         cursor.execute("""
