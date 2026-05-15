@@ -76,9 +76,9 @@ if 'top_setups' in st.session_state and len(st.session_state['top_setups']) > 0:
                     <div class="symbol-title">{setup['symbol']}</div>
                     <div style="font-size: 12px; color: #8c8c8c;">Score: {setup['score']}/8</div>
                     <hr>
-                    <div class="metric-value">₹{float(setup['entry']):,.2f}</div>
-                    <div style="font-size: 12px; color: #8c8c8c;">Target: ₹{float(setup['target']):,.2f}</div>
-                    <div style="font-size: 12px; color: #52c41a;">+{float(setup['potential_pct']):.2f}% Potential</div>
+                    <div class="metric-value">₹{float(setup['entry'] or 0):,.2f}</div>
+                    <div style="font-size: 12px; color: #8c8c8c;">Target: ₹{float(setup['target'] or 0):,.2f}</div>
+                    <div style="font-size: 12px; color: #52c41a;">+{float(setup['potential_pct'] or 0):.2f}% Potential</div>
                 </div>
             """, unsafe_allow_html=True)
 elif 'top_setups' in st.session_state:

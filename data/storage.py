@@ -52,7 +52,7 @@ def save_scan_results(results: list):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             timestamp, r['symbol'], r['score'], r['trend'], 
-            float(r['ltp']), float(r['entry']), float(r['target']), float(r['sl']),
+            float(r['ltp'] or 0.0), float(r['entry'] or 0.0), float(r['target'] or 0.0), float(r['sl'] or 0.0),
             metrics
         ))
         
